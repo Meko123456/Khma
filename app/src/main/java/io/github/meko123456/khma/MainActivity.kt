@@ -2,20 +2,15 @@ package io.github.meko123456.khma
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import io.github.meko123456.khma.ui.LibraryScreen
+import io.github.meko123456.khma.ui.PodcastScreen
 import io.github.meko123456.khma.ui.theme.KhmaTheme
 
 class MainActivity : ComponentActivity() {
@@ -24,29 +19,17 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             KhmaTheme {
-                HomeScreen()
-            }
-        }
-    }
-}
+                var openFeed by remember { mutableStateOf<String?>(null) }
 
-/** Placeholder home — subscriptions, episodes and the player land in the next issues. */
-@Composable
-private fun HomeScreen() {
-    Scaffold { padding ->
-        Column(
-            modifier = Modifier.fillMaxSize().padding(padding).padding(32.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Text("Khma 🎧", style = MaterialTheme.typography.headlineMedium)
-            Text(
-                "A podcast player. Subscriptions, episodes, and background playback are on the way.",
-                style = MaterialTheme.typography.bodyMedium,
-                textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(top = 12.dp),
-            )
+                BackHandler(enabled = openFeed != null) { openFeed = null }
+
+                val feed = openFeed
+                if (feed == null) {
+                    LibraryScreen(onOpenPodcast = { openFeed = it })
+                } else {
+                    PodcastScreen(feedUrl = feed, onBack = { openFeed = null })
+                }
+            }
         }
     }
 }
