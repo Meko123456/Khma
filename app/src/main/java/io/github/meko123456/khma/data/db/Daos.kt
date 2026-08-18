@@ -1,6 +1,8 @@
 package io.github.meko123456.khma.data.db
 
 import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Upsert
 import kotlinx.coroutines.flow.Flow
@@ -28,8 +30,9 @@ interface EpisodeDao {
     @Query("SELECT * FROM episodes WHERE feedUrl = :feedUrl AND guid = :guid")
     suspend fun byId(feedUrl: String, guid: String): EpisodeEntity?
 
-    @Upsert
-    suspend fun upsertAll(episodes: List<EpisodeEntity>)
+    /** Adds new episodes without touching existing rows — preserves playback/download state on refresh. */
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertNew(episodes: List<EpisodeEntity>)
 
     @Query("UPDATE episodes SET positionMillis = :positionMillis, finished = :finished WHERE feedUrl = :feedUrl AND guid = :guid")
     suspend fun updateProgress(feedUrl: String, guid: String, positionMillis: Long, finished: Boolean)
