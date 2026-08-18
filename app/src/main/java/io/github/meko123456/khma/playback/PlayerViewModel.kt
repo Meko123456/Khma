@@ -12,6 +12,7 @@ import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import io.github.meko123456.khma.data.db.EpisodeEntity
+import io.github.meko123456.khma.data.db.KhmaDatabase
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -29,6 +30,10 @@ data class PlayerUi(
 /** Connects a MediaController to [PlaybackService] and exposes play + transport controls. */
 class PlayerViewModel(app: Application) : AndroidViewModel(app) {
 
+    private val episodeDao = KhmaDatabase.get(app).episodeDao()
+    private var currentFeed: String? = null
+    private var currentGuid: String? = null
+
     private var controller: MediaController? = null
     private val _state = MutableStateFlow(PlayerUi())
     val state: StateFlow<PlayerUi> = _state.asStateFlow()
@@ -45,17 +50,24 @@ class PlayerViewModel(app: Application) : AndroidViewModel(app) {
             pushState()
         }, ContextCompat.getMainExecutor(app))
 
-        // Position ticker while playing (the player only emits events on discrete changes).
+        // Position ticker while playing; also persist progress every few seconds.
         viewModelScope.launch {
+            var ticks = 0
             while (true) {
                 delay(500)
-                if (controller?.isPlaying == true) pushState()
+                if (controller?.isPlaying == true) {
+                    pushState()
+                    if (++ticks % 8 == 0) saveProgress()
+                }
             }
         }
     }
 
     fun play(episode: EpisodeEntity) {
         val c = controller ?: return
+        if (episode.feedUrl != currentFeed || episode.guid != currentGuid) saveProgress() // save the outgoing one
+        currentFeed = episode.feedUrl
+        currentGuid = episode.guid
         val item = MediaItem.Builder()
             .setUri(episode.downloadPath ?: episode.audioUrl)
             .setMediaId("${episode.feedUrl}|${episode.guid}")
@@ -68,12 +80,29 @@ class PlayerViewModel(app: Application) : AndroidViewModel(app) {
             .build()
         c.setMediaItem(item)
         c.prepare()
+        if (episode.positionMillis > 0) c.seekTo(episode.positionMillis) // resume where we left off
         c.play()
     }
 
     fun togglePlayPause() {
         val c = controller ?: return
-        if (c.isPlaying) c.pause() else c.play()
+        if (c.isPlaying) {
+            c.pause()
+            saveProgress()
+        } else {
+            c.play()
+        }
+    }
+
+    /** Persists the current episode's position (and marks it finished near the end). */
+    private fun saveProgress() {
+        val c = controller ?: return
+        val feed = currentFeed ?: return
+        val guid = currentGuid ?: return
+        val position = c.currentPosition.coerceAtLeast(0)
+        val duration = c.duration
+        val finished = duration > 0 && position >= duration - 5_000
+        viewModelScope.launch { episodeDao.updateProgress(feed, guid, position, finished) }
     }
 
     fun seekTo(ms: Long) { controller?.seekTo(ms.coerceAtLeast(0)) }
