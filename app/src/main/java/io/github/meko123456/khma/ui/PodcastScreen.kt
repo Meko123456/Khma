@@ -1,5 +1,6 @@
 package io.github.meko123456.khma.ui
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -34,7 +35,7 @@ private val dateFmt = SimpleDateFormat("d MMM yyyy", Locale.getDefault())
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PodcastScreen(feedUrl: String, onBack: () -> Unit, vm: LibraryViewModel = viewModel()) {
+fun PodcastScreen(feedUrl: String, onBack: () -> Unit, onPlay: (EpisodeEntity) -> Unit, vm: LibraryViewModel = viewModel()) {
     val podcast by vm.podcast(feedUrl).collectAsState(initial = null)
     val episodes by vm.episodes(feedUrl).collectAsState(initial = emptyList())
 
@@ -57,7 +58,7 @@ fun PodcastScreen(feedUrl: String, onBack: () -> Unit, vm: LibraryViewModel = vi
     ) { padding ->
         LazyColumn(Modifier.fillMaxSize().padding(padding)) {
             items(episodes, key = { it.guid }) { e ->
-                EpisodeRow(e)
+                EpisodeRow(e, onClick = { onPlay(e) })
                 HorizontalDivider()
             }
         }
@@ -65,8 +66,8 @@ fun PodcastScreen(feedUrl: String, onBack: () -> Unit, vm: LibraryViewModel = vi
 }
 
 @Composable
-private fun EpisodeRow(e: EpisodeEntity) {
-    Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+private fun EpisodeRow(e: EpisodeEntity, onClick: () -> Unit) {
+    Column(Modifier.fillMaxWidth().clickable(onClick = onClick).padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text(e.title, style = MaterialTheme.typography.titleSmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
         Text(
             listOfNotNull(
