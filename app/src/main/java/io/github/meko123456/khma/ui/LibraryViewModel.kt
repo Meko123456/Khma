@@ -6,15 +6,21 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.work.WorkManager
 import io.github.meko123456.khma.data.PodcastRepository
 import io.github.meko123456.khma.data.db.EpisodeEntity
 import io.github.meko123456.khma.data.db.KhmaDatabase
 import io.github.meko123456.khma.data.db.PodcastEntity
+import io.github.meko123456.khma.data.download.DownloadWorker
+import io.github.meko123456.khma.data.download.Downloads
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class LibraryViewModel(app: Application) : AndroidViewModel(app) {
 
@@ -46,6 +52,30 @@ class LibraryViewModel(app: Application) : AndroidViewModel(app) {
     fun unsubscribe(feedUrl: String) {
         viewModelScope.launch { repo.unsubscribe(feedUrl) }
     }
+
+    /** Enqueues a background download of the episode's audio. */
+    fun download(e: EpisodeEntity) {
+        Downloads.enqueue(getApplication(), e)
+    }
+
+    /** Cancels any in-flight download, removes the local file, and clears the stored path. */
+    fun deleteDownload(e: EpisodeEntity) {
+        val app = getApplication<Application>()
+        Downloads.cancel(app, e.feedUrl, e.guid)
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) { Downloads.file(app, e.feedUrl, e.guid).delete() }
+            db.episodeDao().setDownloadPath(e.feedUrl, e.guid, null)
+        }
+    }
+
+    /** Emits download progress percent (0..100) while running, or -1 when idle/finished. */
+    fun downloadProgress(feedUrl: String, guid: String): Flow<Int> =
+        WorkManager.getInstance(getApplication())
+            .getWorkInfosForUniqueWorkFlow(Downloads.uniqueName(feedUrl, guid))
+            .map { infos ->
+                val active = infos.firstOrNull { !it.state.isFinished }
+                active?.progress?.getInt(DownloadWorker.KEY_PROGRESS, 0) ?: -1
+            }
 
     fun clearStatus() { status = null }
 }
