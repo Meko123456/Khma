@@ -18,6 +18,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.meko123456.khma.playback.PlayerViewModel
 import io.github.meko123456.khma.ui.LibraryScreen
 import io.github.meko123456.khma.ui.NowPlayingBar
+import io.github.meko123456.khma.ui.NowPlayingScreen
 import io.github.meko123456.khma.ui.PodcastScreen
 import io.github.meko123456.khma.ui.theme.KhmaTheme
 
@@ -30,20 +31,37 @@ class MainActivity : ComponentActivity() {
                 val playerVm: PlayerViewModel = viewModel()
                 val playerState by playerVm.state.collectAsState()
                 var openFeed by remember { mutableStateOf<String?>(null) }
+                var showNowPlaying by remember { mutableStateOf(false) }
 
-                BackHandler(enabled = openFeed != null) { openFeed = null }
+                BackHandler(enabled = showNowPlaying) { showNowPlaying = false }
+                BackHandler(enabled = openFeed != null && !showNowPlaying) { openFeed = null }
 
-                Column(Modifier.fillMaxSize()) {
-                    Box(Modifier.weight(1f)) {
-                        val feed = openFeed
-                        if (feed == null) {
-                            LibraryScreen(onOpenPodcast = { openFeed = it })
-                        } else {
-                            PodcastScreen(feedUrl = feed, onBack = { openFeed = null }, onPlay = playerVm::play)
+                if (showNowPlaying && playerState.hasItem) {
+                    NowPlayingScreen(
+                        state = playerState,
+                        onCollapse = { showNowPlaying = false },
+                        onToggle = playerVm::togglePlayPause,
+                        onSeek = playerVm::seekTo,
+                        onSkip = playerVm::skip,
+                        onSetSpeed = playerVm::setSpeed,
+                    )
+                } else {
+                    Column(Modifier.fillMaxSize()) {
+                        Box(Modifier.weight(1f)) {
+                            val feed = openFeed
+                            if (feed == null) {
+                                LibraryScreen(onOpenPodcast = { openFeed = it })
+                            } else {
+                                PodcastScreen(feedUrl = feed, onBack = { openFeed = null }, onPlay = playerVm::play)
+                            }
                         }
-                    }
-                    if (playerState.hasItem) {
-                        NowPlayingBar(state = playerState, onToggle = playerVm::togglePlayPause)
+                        if (playerState.hasItem) {
+                            NowPlayingBar(
+                                state = playerState,
+                                onToggle = playerVm::togglePlayPause,
+                                onExpand = { showNowPlaying = true },
+                            )
+                        }
                     }
                 }
             }

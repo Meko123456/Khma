@@ -23,8 +23,10 @@ data class PlayerUi(
     val hasItem: Boolean = false,
     val isPlaying: Boolean = false,
     val title: String = "",
+    val artworkUri: String? = null,
     val positionMs: Long = 0,
     val durationMs: Long = 0,
+    val speed: Float = 1f,
 )
 
 /** Connects a MediaController to [PlaybackService] and exposes play + transport controls. */
@@ -112,14 +114,21 @@ class PlayerViewModel(app: Application) : AndroidViewModel(app) {
         c.seekTo((c.currentPosition + deltaMs).coerceAtLeast(0))
     }
 
+    fun setSpeed(speed: Float) {
+        controller?.setPlaybackSpeed(speed)
+        pushState()
+    }
+
     private fun pushState() {
         val c = controller ?: return
         _state.value = PlayerUi(
             hasItem = c.currentMediaItem != null,
             isPlaying = c.isPlaying,
             title = c.mediaMetadata.title?.toString().orEmpty(),
+            artworkUri = c.mediaMetadata.artworkUri?.toString(),
             positionMs = c.currentPosition.coerceAtLeast(0),
             durationMs = c.duration.takeIf { it > 0 } ?: 0,
+            speed = c.playbackParameters.speed,
         )
     }
 

@@ -1,5 +1,6 @@
 package io.github.meko123456.khma.ui
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -23,7 +24,7 @@ import io.github.meko123456.khma.playback.PlayerUi
 /** Persistent mini-player shown while something is loaded. Tap play/pause; a thin
  *  progress line shows position. The full now-playing screen and skip/speed land in #7. */
 @Composable
-fun NowPlayingBar(state: PlayerUi, onToggle: () -> Unit) {
+fun NowPlayingBar(state: PlayerUi, onToggle: () -> Unit, onExpand: () -> Unit) {
     Surface(tonalElevation = 3.dp, modifier = Modifier.fillMaxWidth()) {
         Column {
             val progress = if (state.durationMs > 0) (state.positionMs.toFloat() / state.durationMs).coerceIn(0f, 1f) else 0f
@@ -38,7 +39,7 @@ fun NowPlayingBar(state: PlayerUi, onToggle: () -> Unit) {
                     style = MaterialTheme.typography.bodyMedium,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(1f).clickable(onClick = onExpand),
                 )
                 IconButton(onClick = onToggle) {
                     // material-icons-core has no Pause glyph; overlay a pause using two bars via text.
