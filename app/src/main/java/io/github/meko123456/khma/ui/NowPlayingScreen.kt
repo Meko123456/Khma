@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material3.AssistChip
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -42,6 +43,8 @@ fun NowPlayingScreen(
     onSeek: (Long) -> Unit,
     onSkip: (Long) -> Unit,
     onSetSpeed: (Float) -> Unit,
+    onSetSleep: (Int) -> Unit,
+    onCancelSleep: () -> Unit,
 ) {
     Scaffold { padding ->
         Column(
@@ -108,6 +111,24 @@ fun NowPlayingScreen(
                         onClick = { onSetSpeed(s) },
                         label = { Text("${s}x") },
                     )
+                }
+            }
+
+            // Sleep timer: minute chips when off; countdown + cancel when running.
+            Row(
+                Modifier.fillMaxWidth().padding(top = 24.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                val remaining = state.sleepRemainingMs
+                if (remaining != null) {
+                    Text("😴 ${formatMs(remaining)}", style = MaterialTheme.typography.bodyMedium)
+                    AssistChip(onClick = onCancelSleep, label = { Text("Cancel") })
+                } else {
+                    Text("😴", style = MaterialTheme.typography.bodyMedium)
+                    listOf(15, 30, 45, 60).forEach { m ->
+                        AssistChip(onClick = { onSetSleep(m) }, label = { Text("${m}m") })
+                    }
                 }
             }
         }

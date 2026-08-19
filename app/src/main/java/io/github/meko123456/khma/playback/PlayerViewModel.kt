@@ -2,6 +2,7 @@ package io.github.meko123456.khma.playback
 
 import android.app.Application
 import android.content.ComponentName
+import android.os.SystemClock
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.lifecycle.AndroidViewModel
@@ -27,6 +28,7 @@ data class PlayerUi(
     val positionMs: Long = 0,
     val durationMs: Long = 0,
     val speed: Float = 1f,
+    val sleepRemainingMs: Long? = null,
 )
 
 /** Connects a MediaController to [PlaybackService] and exposes play + transport controls. */
@@ -37,6 +39,7 @@ class PlayerViewModel(app: Application) : AndroidViewModel(app) {
     private var currentGuid: String? = null
 
     private var controller: MediaController? = null
+    private var sleepEndRealtime: Long? = null
     private val _state = MutableStateFlow(PlayerUi())
     val state: StateFlow<PlayerUi> = _state.asStateFlow()
 
@@ -52,17 +55,42 @@ class PlayerViewModel(app: Application) : AndroidViewModel(app) {
             pushState()
         }, ContextCompat.getMainExecutor(app))
 
-        // Position ticker while playing; also persist progress every few seconds.
+        // Position ticker while playing; also persist progress every few seconds
+        // and drive the sleep-timer countdown (even while paused).
         viewModelScope.launch {
             var ticks = 0
             while (true) {
                 delay(500)
+                checkSleepTimer()
                 if (controller?.isPlaying == true) {
                     pushState()
                     if (++ticks % 8 == 0) saveProgress()
+                } else if (sleepEndRealtime != null) {
+                    pushState()
                 }
             }
         }
+    }
+
+    /** Pauses playback once the sleep timer elapses. */
+    private fun checkSleepTimer() {
+        val end = sleepEndRealtime ?: return
+        if (SystemClock.elapsedRealtime() >= end) {
+            sleepEndRealtime = null
+            controller?.pause()
+            saveProgress()
+            pushState()
+        }
+    }
+
+    fun setSleepTimer(minutes: Int) {
+        sleepEndRealtime = SystemClock.elapsedRealtime() + minutes * 60_000L
+        pushState()
+    }
+
+    fun cancelSleepTimer() {
+        sleepEndRealtime = null
+        pushState()
     }
 
     fun play(episode: EpisodeEntity) {
@@ -129,6 +157,7 @@ class PlayerViewModel(app: Application) : AndroidViewModel(app) {
             positionMs = c.currentPosition.coerceAtLeast(0),
             durationMs = c.duration.takeIf { it > 0 } ?: 0,
             speed = c.playbackParameters.speed,
+            sleepRemainingMs = sleepEndRealtime?.let { (it - SystemClock.elapsedRealtime()).coerceAtLeast(0) },
         )
     }
 

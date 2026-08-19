@@ -44,6 +44,8 @@ class MainActivity : ComponentActivity() {
                         onSeek = playerVm::seekTo,
                         onSkip = playerVm::skip,
                         onSetSpeed = playerVm::setSpeed,
+                        onSetSleep = playerVm::setSleepTimer,
+                        onCancelSleep = playerVm::cancelSleepTimer,
                     )
                 } else {
                     Column(Modifier.fillMaxSize()) {
