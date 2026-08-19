@@ -23,6 +23,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -63,10 +64,16 @@ fun PodcastScreen(feedUrl: String, onBack: () -> Unit, onPlay: (EpisodeEntity) -
             )
         },
     ) { padding ->
-        LazyColumn(Modifier.fillMaxSize().padding(padding)) {
-            items(episodes, key = { it.guid }) { e ->
-                EpisodeRow(e, vm, onClick = { onPlay(e) })
-                HorizontalDivider()
+        PullToRefreshBox(
+            isRefreshing = vm.refreshing,
+            onRefresh = { vm.refresh(feedUrl) },
+            modifier = Modifier.fillMaxSize().padding(padding),
+        ) {
+            LazyColumn(Modifier.fillMaxSize()) {
+                items(episodes, key = { it.guid }) { e ->
+                    EpisodeRow(e, vm, onClick = { onPlay(e) })
+                    HorizontalDivider()
+                }
             }
         }
     }

@@ -32,6 +32,7 @@ class LibraryViewModel(app: Application) : AndroidViewModel(app) {
 
     var status by mutableStateOf<String?>(null); private set
     var busy by mutableStateOf(false); private set
+    var refreshing by mutableStateOf(false); private set
 
     fun podcast(feedUrl: String): Flow<PodcastEntity?> = repo.podcast(feedUrl)
     fun episodes(feedUrl: String): Flow<List<EpisodeEntity>> = repo.episodes(feedUrl)
@@ -51,6 +52,15 @@ class LibraryViewModel(app: Application) : AndroidViewModel(app) {
 
     fun unsubscribe(feedUrl: String) {
         viewModelScope.launch { repo.unsubscribe(feedUrl) }
+    }
+
+    /** Re-fetches the feed to pull in new episodes; insert-ignore keeps existing progress. */
+    fun refresh(feedUrl: String) {
+        viewModelScope.launch {
+            refreshing = true
+            repo.subscribe(feedUrl)
+            refreshing = false
+        }
     }
 
     /** Enqueues a background download of the episode's audio. */
