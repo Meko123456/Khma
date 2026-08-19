@@ -54,6 +54,14 @@ class LibraryViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch { repo.unsubscribe(feedUrl) }
     }
 
+    /** Toggles an episode's played state: mark played keeps position; mark unplayed resets it. */
+    fun toggleFinished(e: EpisodeEntity) {
+        viewModelScope.launch {
+            if (e.finished) db.episodeDao().updateProgress(e.feedUrl, e.guid, 0, false)
+            else db.episodeDao().updateProgress(e.feedUrl, e.guid, e.positionMillis, true)
+        }
+    }
+
     /** Re-fetches the feed to pull in new episodes; insert-ignore keeps existing progress. */
     fun refresh(feedUrl: String) {
         viewModelScope.launch {

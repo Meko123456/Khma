@@ -1,6 +1,7 @@
 package io.github.meko123456.khma.ui
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -79,6 +80,7 @@ fun PodcastScreen(feedUrl: String, onBack: () -> Unit, onPlay: (EpisodeEntity) -
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun EpisodeRow(e: EpisodeEntity, vm: LibraryViewModel, onClick: () -> Unit) {
     Row(
@@ -86,7 +88,10 @@ private fun EpisodeRow(e: EpisodeEntity, vm: LibraryViewModel, onClick: () -> Un
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(
-            Modifier.weight(1f).clickable(onClick = onClick).padding(16.dp),
+            Modifier
+                .weight(1f)
+                .combinedClickable(onClick = onClick, onLongClick = { vm.toggleFinished(e) })
+                .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
