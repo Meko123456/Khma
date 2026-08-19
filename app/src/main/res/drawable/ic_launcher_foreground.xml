@@ -1,8 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Equalizer bars — a "sound" mark. -->
+<!-- Equalizer bars with rounded caps — a "sound" mark, centered in the safe zone. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp" android:height="108dp"
     android:viewportWidth="108" android:viewportHeight="108">
-    <path android:fillColor="#FFFFFF"
-        android:pathData="M32,44 h10 v20 h-10 z M46,30 h10 v48 h-10 z M60,38 h10 v32 h-10 z M74,48 h10 v12 h-10 z" />
+    <group>
+        <path android:strokeColor="#FFFFFF" android:strokeWidth="9"
+            android:strokeLineCap="round" android:pathData="M37,45 L37,63" />
+        <path android:strokeColor="#FFFFFF" android:strokeWidth="9"
+            android:strokeLineCap="round" android:pathData="M51,32 L51,76" />
+        <path android:strokeColor="#FFFFFF" android:strokeWidth="9"
+            android:strokeLineCap="round" android:pathData="M65,39 L65,69" />
+        <path android:strokeColor="#FFFFFF" android:strokeWidth="9"
+            android:strokeLineCap="round" android:pathData="M79,49 L79,59" />
+    </group>
 </vector>
