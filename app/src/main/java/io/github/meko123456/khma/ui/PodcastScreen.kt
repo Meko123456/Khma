@@ -14,7 +14,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -80,7 +82,23 @@ private fun EpisodeRow(e: EpisodeEntity, vm: LibraryViewModel, onClick: () -> Un
             Modifier.weight(1f).clickable(onClick = onClick).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            Text(e.title, style = MaterialTheme.typography.titleSmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                if (e.finished) {
+                    Icon(
+                        Icons.Default.Done,
+                        contentDescription = "Played",
+                        modifier = Modifier.size(16.dp),
+                        tint = MaterialTheme.colorScheme.primary,
+                    )
+                }
+                Text(
+                    e.title,
+                    style = MaterialTheme.typography.titleSmall,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    color = if (e.finished) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
+                )
+            }
             Text(
                 listOfNotNull(
                     e.pubDateMillis.takeIf { it > 0 }?.let { dateFmt.format(Date(it)) },
@@ -89,6 +107,11 @@ private fun EpisodeRow(e: EpisodeEntity, vm: LibraryViewModel, onClick: () -> Un
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+            // Thin progress line for a partially-played, unfinished episode.
+            if (!e.finished && e.positionMillis > 0 && e.durationSeconds > 0) {
+                val frac = (e.positionMillis.toFloat() / (e.durationSeconds * 1000f)).coerceIn(0f, 1f)
+                LinearProgressIndicator(progress = { frac }, modifier = Modifier.fillMaxWidth().padding(top = 2.dp))
+            }
         }
         DownloadControl(e, vm)
     }
