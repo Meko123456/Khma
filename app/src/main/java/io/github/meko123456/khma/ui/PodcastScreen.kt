@@ -36,6 +36,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.meko123456.khma.data.db.EpisodeEntity
+import io.github.meko123456.khma.domain.TimeFormat
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -114,7 +115,7 @@ private fun EpisodeRow(e: EpisodeEntity, vm: LibraryViewModel, onClick: () -> Un
             Text(
                 listOfNotNull(
                     e.pubDateMillis.takeIf { it > 0 }?.let { dateFmt.format(Date(it)) },
-                    formatDuration(e.durationSeconds),
+                    TimeFormat.duration(e.durationSeconds),
                 ).joinToString(" · "),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -160,9 +161,3 @@ private fun DownloadControl(e: EpisodeEntity, vm: LibraryViewModel) {
     }
 }
 
-private fun formatDuration(seconds: Int): String? {
-    if (seconds <= 0) return null
-    val h = seconds / 3600
-    val m = (seconds % 3600) / 60
-    return if (h > 0) "${h}h ${m}m" else "$m min"
-}

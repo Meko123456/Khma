@@ -31,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import io.github.meko123456.khma.domain.TimeFormat
 import io.github.meko123456.khma.playback.PlayerUi
 
 private val SPEEDS = listOf(0.8f, 1.0f, 1.25f, 1.5f, 2.0f)
@@ -81,8 +82,8 @@ fun NowPlayingScreen(
                 modifier = Modifier.fillMaxWidth().padding(top = 24.dp),
             )
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text(formatMs(position.toLong()), style = MaterialTheme.typography.bodySmall)
-                Text(formatMs(state.durationMs), style = MaterialTheme.typography.bodySmall)
+                Text(TimeFormat.clock(position.toLong()), style = MaterialTheme.typography.bodySmall)
+                Text(TimeFormat.clock(state.durationMs), style = MaterialTheme.typography.bodySmall)
             }
 
             Row(
@@ -122,7 +123,7 @@ fun NowPlayingScreen(
             ) {
                 val remaining = state.sleepRemainingMs
                 if (remaining != null) {
-                    Text("😴 ${formatMs(remaining)}", style = MaterialTheme.typography.bodyMedium)
+                    Text("😴 ${TimeFormat.clock(remaining)}", style = MaterialTheme.typography.bodyMedium)
                     AssistChip(onClick = onCancelSleep, label = { Text("Cancel") })
                 } else {
                     Text("😴", style = MaterialTheme.typography.bodyMedium)
@@ -135,10 +136,3 @@ fun NowPlayingScreen(
     }
 }
 
-private fun formatMs(ms: Long): String {
-    val total = ms / 1000
-    val h = total / 3600
-    val m = (total % 3600) / 60
-    val s = total % 60
-    return if (h > 0) "%d:%02d:%02d".format(h, m, s) else "%d:%02d".format(m, s)
-}
