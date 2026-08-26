@@ -28,6 +28,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -94,7 +96,11 @@ fun NowPlayingScreen(
                 OutlinedButton(onClick = { onSkip(-10_000) }) { Text("−10s") }
                 IconButton(onClick = onToggle, modifier = Modifier.size(72.dp)) {
                     if (state.isPlaying) {
-                        Text("❚❚", style = MaterialTheme.typography.headlineMedium)
+                        Text(
+                            "❚❚",
+                            style = MaterialTheme.typography.headlineMedium,
+                            modifier = Modifier.clearAndSetSemantics { contentDescription = "Pause" },
+                        )
                     } else {
                         Icon(Icons.Default.PlayArrow, contentDescription = "Play", modifier = Modifier.size(48.dp))
                     }

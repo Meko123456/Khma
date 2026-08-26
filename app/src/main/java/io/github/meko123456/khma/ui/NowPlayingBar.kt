@@ -15,6 +15,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.material.icons.Icons
@@ -44,7 +46,11 @@ fun NowPlayingBar(state: PlayerUi, onToggle: () -> Unit, onExpand: () -> Unit) {
                 IconButton(onClick = onToggle) {
                     // material-icons-core has no Pause glyph; overlay a pause using two bars via text.
                     if (state.isPlaying) {
-                        Text("❚❚", style = MaterialTheme.typography.titleMedium)
+                        Text(
+                            "❚❚",
+                            style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier.clearAndSetSemantics { contentDescription = "Pause" },
+                        )
                     } else {
                         Icon(Icons.Default.PlayArrow, contentDescription = "Play")
                     }

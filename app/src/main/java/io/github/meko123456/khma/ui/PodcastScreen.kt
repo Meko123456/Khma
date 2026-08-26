@@ -32,6 +32,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -154,7 +156,11 @@ private fun DownloadControl(e: EpisodeEntity, vm: LibraryViewModel) {
                 }
             } else {
                 IconButton(onClick = { vm.download(e) }) {
-                    Text("⬇", style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        "⬇",
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.clearAndSetSemantics { contentDescription = "Download episode" },
+                    )
                 }
             }
         }
