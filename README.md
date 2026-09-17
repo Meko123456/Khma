@@ -34,7 +34,7 @@ state, **WorkManager** for downloads, **OkHttp** for networking, a DOM-based
 `RssParser` for feeds, and **Coil** for artwork.
 
 - Gradle 9.7.1 · AGP 9.1.1 · Kotlin 2.4.10 · Compose BOM 2026.06.01
-- compileSdk 36 · minSdk 26
+- compileSdk 37 · minSdk 26
 
 ## Structure
 
