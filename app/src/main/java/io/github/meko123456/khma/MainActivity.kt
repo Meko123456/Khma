@@ -11,7 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -30,8 +30,8 @@ class MainActivity : ComponentActivity() {
             KhmaTheme {
                 val playerVm: PlayerViewModel = viewModel()
                 val playerState by playerVm.state.collectAsState()
-                var openFeed by remember { mutableStateOf<String?>(null) }
-                var showNowPlaying by remember { mutableStateOf(false) }
+                var openFeed by rememberSaveable { mutableStateOf<String?>(null) }
+                var showNowPlaying by rememberSaveable { mutableStateOf(false) }
 
                 BackHandler(enabled = showNowPlaying) { showNowPlaying = false }
                 BackHandler(enabled = openFeed != null && !showNowPlaying) { openFeed = null }

@@ -29,7 +29,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -46,7 +46,7 @@ import io.github.meko123456.khma.data.db.PodcastEntity
 @Composable
 fun LibraryScreen(onOpenPodcast: (String) -> Unit, vm: LibraryViewModel = viewModel()) {
     val podcasts by vm.podcasts.collectAsState()
-    var adding by remember { mutableStateOf(false) }
+    var adding by rememberSaveable { mutableStateOf(false) }
 
     Scaffold(
         topBar = { TopAppBar(title = { Text("Khma 🎧") }) },
@@ -138,7 +138,7 @@ fun Artwork(url: String?, size: androidx.compose.ui.unit.Dp) {
 
 @Composable
 private fun AddFeedDialog(busy: Boolean, onAdd: (String) -> Unit, onDismiss: () -> Unit) {
-    var url by remember { mutableStateOf("") }
+    var url by rememberSaveable { mutableStateOf("") }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Add a podcast") },
