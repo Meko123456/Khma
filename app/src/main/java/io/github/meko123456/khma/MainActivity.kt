@@ -8,6 +8,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -33,10 +34,16 @@ class MainActivity : ComponentActivity() {
                 var openFeed by rememberSaveable { mutableStateOf<String?>(null) }
                 var showNowPlaying by rememberSaveable { mutableStateOf(false) }
 
-                BackHandler(enabled = showNowPlaying) { showNowPlaying = false }
-                BackHandler(enabled = openFeed != null && !showNowPlaying) { openFeed = null }
+                // The flag survives the process being killed, but the episode doesn't. Expanded with
+                // nothing to play, the hidden player still took the first Back press, and the next
+                // episode opened expanded; so the flag clears whenever the player is empty.
+                val expanded = showNowPlaying && playerState.hasItem
+                LaunchedEffect(playerState.hasItem) { if (!playerState.hasItem) showNowPlaying = false }
 
-                if (showNowPlaying && playerState.hasItem) {
+                BackHandler(enabled = expanded) { showNowPlaying = false }
+                BackHandler(enabled = openFeed != null && !expanded) { openFeed = null }
+
+                if (expanded) {
                     NowPlayingScreen(
                         state = playerState,
                         onCollapse = { showNowPlaying = false },
