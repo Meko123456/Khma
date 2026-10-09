@@ -30,8 +30,10 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.style.TextOverflow
@@ -41,9 +43,6 @@ import io.github.meko123456.khma.data.db.EpisodeEntity
 import io.github.meko123456.khma.domain.TimeFormat
 import java.text.SimpleDateFormat
 import java.util.Date
-import java.util.Locale
-
-private val dateFmt = SimpleDateFormat("d MMM yyyy", Locale.getDefault())
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -86,6 +85,10 @@ fun PodcastScreen(feedUrl: String, onBack: () -> Unit, onPlay: (EpisodeEntity) -
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun EpisodeRow(e: EpisodeEntity, vm: LibraryViewModel, onClick: () -> Unit) {
+    // Follows the app's language as it is now. A top-level formatter kept the language the process
+    // started in, so switching the app to Arabic left the dates in English.
+    val locale = LocalConfiguration.current.locales[0]
+    val dateFmt = remember(locale) { SimpleDateFormat("d MMM yyyy", locale) }
     Row(
         Modifier.fillMaxWidth().padding(end = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -116,7 +119,9 @@ private fun EpisodeRow(e: EpisodeEntity, vm: LibraryViewModel, onClick: () -> Un
             }
             Text(
                 listOfNotNull(
-                    e.pubDateMillis.takeIf { it > 0 }?.let { dateFmt.format(Date(it)) },
+                    // Isolated (FSI…PDI) from the duration. An Arabic month is right-to-left, and
+                    // unisolated it drew "25" into the date: "7 25 · 2026 أكتوبر min".
+                    e.pubDateMillis.takeIf { it > 0 }?.let { "\u2068${dateFmt.format(Date(it))}\u2069" },
                     TimeFormat.duration(e.durationSeconds),
                 ).joinToString(" · "),
                 style = MaterialTheme.typography.bodySmall,
