@@ -33,8 +33,8 @@ MediaSession) for playback, **Room** (+ KSP) for subscriptions/episodes and play
 state, **WorkManager** for downloads, **OkHttp** for networking, a DOM-based
 `RssParser` for feeds, and **Coil** for artwork.
 
-- Gradle 9.7.1 · AGP 9.1.1 · Kotlin 2.4.10 · Compose BOM 2026.06.01
-- compileSdk 37 · minSdk 26
+- Gradle 9.8.0 · AGP 9.4.1 · Kotlin 2.4.20 · Compose BOM 2026.09.00
+- compileSdk 37 · targetSdk 37 · minSdk 26
 
 ## Structure
 
