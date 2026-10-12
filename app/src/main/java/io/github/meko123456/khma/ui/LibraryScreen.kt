@@ -4,6 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -83,7 +84,9 @@ fun LibraryScreen(onOpenPodcast: (String) -> Unit, vm: LibraryViewModel = viewMo
                     )
                 }
             } else {
-                LazyColumn(Modifier.fillMaxSize()) {
+                // 88dp at the bottom: the FAB's 56 and its margins. Without it the list ended under the
+                // add button, which hid the end of the last podcast's title and took taps meant for it.
+                LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 88.dp)) {
                     items(podcasts, key = { it.feedUrl }) { p ->
                         PodcastRow(p, onClick = { onOpenPodcast(p.feedUrl) })
                     }
