@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.AlertDialog
@@ -36,6 +38,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -142,6 +146,7 @@ fun Artwork(url: String?, size: androidx.compose.ui.unit.Dp) {
 @Composable
 private fun AddFeedDialog(busy: Boolean, onAdd: (String) -> Unit, onDismiss: () -> Unit) {
     var url by rememberSaveable { mutableStateOf("") }
+    val canAdd = url.isNotBlank() && !busy
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Add a podcast") },
@@ -151,10 +156,17 @@ private fun AddFeedDialog(busy: Boolean, onAdd: (String) -> Unit, onDismiss: () 
                 onValueChange = { url = it },
                 label = { Text("RSS feed URL") },
                 singleLine = true,
+                // A link keyboard with nothing to autocorrect, and Go adds the feed as Add does.
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Uri,
+                    autoCorrectEnabled = false,
+                    imeAction = ImeAction.Go,
+                ),
+                keyboardActions = KeyboardActions(onGo = { if (canAdd) onAdd(url) }),
                 modifier = Modifier.fillMaxWidth(),
             )
         },
-        confirmButton = { TextButton(enabled = url.isNotBlank() && !busy, onClick = { onAdd(url) }) { Text("Add") } },
+        confirmButton = { TextButton(enabled = canAdd, onClick = { onAdd(url) }) { Text("Add") } },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
     )
 }
