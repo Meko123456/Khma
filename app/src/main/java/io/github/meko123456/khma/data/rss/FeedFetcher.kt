@@ -19,10 +19,16 @@ class FeedFetcher(
         runCatching {
             val request = Request.Builder().url(feedUrl).header("User-Agent", "Khma/0.1").build()
             client.newCall(request).execute().use { response ->
-                if (!response.isSuccessful) throw IOException("HTTP ${response.code}")
-                val body = response.body?.string() ?: throw IOException("Empty feed")
-                RssParser.parse(body, feedUrl) ?: throw IOException("Not a valid podcast feed")
+                if (!response.isSuccessful) throw HttpStatusException(response.code)
+                val body = response.body?.string() ?: throw NotAFeedException()
+                RssParser.parse(body, feedUrl) ?: throw NotAFeedException()
             }
         }
     }
 }
+
+/** The feed's server answered, but not with the feed. */
+class HttpStatusException(val code: Int) : IOException("HTTP $code")
+
+/** Something came back from the address, and it isn't a podcast feed. */
+class NotAFeedException : IOException("Not a valid podcast feed")

@@ -13,6 +13,7 @@ import io.github.meko123456.khma.data.db.KhmaDatabase
 import io.github.meko123456.khma.data.db.PodcastEntity
 import io.github.meko123456.khma.data.download.DownloadWorker
 import io.github.meko123456.khma.data.download.Downloads
+import io.github.meko123456.khma.data.rss.FeedFailure
 import io.github.meko123456.khma.domain.FeedAddress
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -46,7 +47,7 @@ class LibraryViewModel(app: Application) : AndroidViewModel(app) {
             status = "Adding…"
             repo.subscribe(feedUrl)
                 .onSuccess { status = "Added" }
-                .onFailure { status = it.message ?: "Couldn't add that feed" }
+                .onFailure { status = FeedFailure.describe(it) }
             busy = false
         }
     }
