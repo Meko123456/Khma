@@ -13,6 +13,7 @@ import io.github.meko123456.khma.data.db.KhmaDatabase
 import io.github.meko123456.khma.data.db.PodcastEntity
 import io.github.meko123456.khma.data.download.DownloadWorker
 import io.github.meko123456.khma.data.download.Downloads
+import io.github.meko123456.khma.domain.FeedAddress
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
@@ -38,8 +39,8 @@ class LibraryViewModel(app: Application) : AndroidViewModel(app) {
     fun episodes(feedUrl: String): Flow<List<EpisodeEntity>> = repo.episodes(feedUrl)
 
     fun subscribe(url: String) {
-        val feedUrl = url.trim()
-        if (feedUrl.isBlank()) return
+        if (url.isBlank()) return
+        val feedUrl = FeedAddress.normalise(url)
         viewModelScope.launch {
             busy = true
             status = "Adding…"
