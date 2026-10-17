@@ -16,6 +16,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Done
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -24,13 +25,17 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
@@ -41,6 +46,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.meko123456.khma.data.db.EpisodeEntity
 import io.github.meko123456.khma.domain.TimeFormat
+import io.github.meko123456.khma.domain.UnsubscribeNotice
 import java.text.SimpleDateFormat
 import java.util.Date
 
@@ -49,6 +55,9 @@ import java.util.Date
 fun PodcastScreen(feedUrl: String, onBack: () -> Unit, onPlay: (EpisodeEntity) -> Unit, vm: LibraryViewModel = viewModel()) {
     val podcast by vm.podcast(feedUrl).collectAsState(initial = null)
     val episodes by vm.episodes(feedUrl).collectAsState(initial = emptyList())
+    // One tap on the bin used to unsubscribe outright, and with it every episode's position and
+    // every download, none of which a resubscribe brings back.
+    var confirmUnsubscribe by rememberSaveable { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -60,7 +69,7 @@ fun PodcastScreen(feedUrl: String, onBack: () -> Unit, onPlay: (EpisodeEntity) -
                     }
                 },
                 actions = {
-                    IconButton(onClick = { vm.unsubscribe(feedUrl); onBack() }) {
+                    IconButton(onClick = { confirmUnsubscribe = true }) {
                         Icon(Icons.Default.Delete, contentDescription = "Unsubscribe")
                     }
                 },
@@ -79,6 +88,22 @@ fun PodcastScreen(feedUrl: String, onBack: () -> Unit, onPlay: (EpisodeEntity) -
                 }
             }
         }
+    }
+
+    if (confirmUnsubscribe) {
+        AlertDialog(
+            onDismissRequest = { confirmUnsubscribe = false },
+            title = { Text("Unsubscribe from ${podcast?.title ?: "this podcast"}?") },
+            text = { Text(UnsubscribeNotice.text(episodes.count { it.downloadPath != null })) },
+            confirmButton = {
+                TextButton(onClick = {
+                    confirmUnsubscribe = false
+                    vm.unsubscribe(feedUrl)
+                    onBack()
+                }) { Text("Unsubscribe") }
+            },
+            dismissButton = { TextButton(onClick = { confirmUnsubscribe = false }) { Text("Cancel") } },
+        )
     }
 }
 
