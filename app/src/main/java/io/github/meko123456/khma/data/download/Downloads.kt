@@ -40,4 +40,11 @@ object Downloads {
     fun cancel(context: Context, feedUrl: String, guid: String) {
         WorkManager.getInstance(context).cancelUniqueWork(uniqueName(feedUrl, guid))
     }
+
+    /** Removes an episode's audio, and the `.part` of a download that was cut short. */
+    fun delete(context: Context, feedUrl: String, guid: String) {
+        val audio = file(context, feedUrl, guid)
+        audio.delete()
+        File(audio.parentFile, audio.name + ".part").delete()
+    }
 }

@@ -31,7 +31,11 @@ class PodcastRepository(
         episodeDao.insertNew(podcast.episodes.map { it.toEntity(podcast.feedUrl) })
     }
 
+    /** Removes the podcast; its episodes go with it through the foreign key. */
     suspend fun unsubscribe(feedUrl: String) = podcastDao.delete(feedUrl)
+
+    /** Every episode guid stored for [feedUrl] — what an unsubscribe has to clear off the disk too. */
+    suspend fun episodeGuids(feedUrl: String): List<String> = episodeDao.guidsFor(feedUrl)
 
     private fun Podcast.toEntity() = PodcastEntity(feedUrl, title, author, description, imageUrl)
 

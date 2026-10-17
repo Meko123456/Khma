@@ -52,8 +52,19 @@ class LibraryViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    /**
+     * Removes the podcast, its episodes and their downloads. The downloads used to stay behind:
+     * files in files/downloads that no screen listed any more, so nothing could ever delete them.
+     */
     fun unsubscribe(feedUrl: String) {
-        viewModelScope.launch { repo.unsubscribe(feedUrl) }
+        val app = getApplication<Application>()
+        viewModelScope.launch {
+            val guids = repo.episodeGuids(feedUrl)
+            // Running downloads stop first, so none of them lands a file after the sweep below.
+            guids.forEach { Downloads.cancel(app, feedUrl, it) }
+            repo.unsubscribe(feedUrl)
+            withContext(Dispatchers.IO) { guids.forEach { Downloads.delete(app, feedUrl, it) } }
+        }
     }
 
     /** Toggles an episode's played state: mark played keeps position; mark unplayed resets it. */
@@ -83,7 +94,7 @@ class LibraryViewModel(app: Application) : AndroidViewModel(app) {
         val app = getApplication<Application>()
         Downloads.cancel(app, e.feedUrl, e.guid)
         viewModelScope.launch {
-            withContext(Dispatchers.IO) { Downloads.file(app, e.feedUrl, e.guid).delete() }
+            withContext(Dispatchers.IO) { Downloads.delete(app, e.feedUrl, e.guid) }
             db.episodeDao().setDownloadPath(e.feedUrl, e.guid, null)
         }
     }

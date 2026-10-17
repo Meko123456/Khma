@@ -30,6 +30,9 @@ interface EpisodeDao {
     @Query("SELECT * FROM episodes WHERE feedUrl = :feedUrl AND guid = :guid")
     suspend fun byId(feedUrl: String, guid: String): EpisodeEntity?
 
+    @Query("SELECT guid FROM episodes WHERE feedUrl = :feedUrl")
+    suspend fun guidsFor(feedUrl: String): List<String>
+
     /** Adds new episodes without touching existing rows — preserves playback/download state on refresh. */
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertNew(episodes: List<EpisodeEntity>)
