@@ -13,6 +13,7 @@ import io.github.meko123456.khma.data.db.KhmaDatabase
 import io.github.meko123456.khma.data.db.PodcastEntity
 import io.github.meko123456.khma.data.download.DownloadWorker
 import io.github.meko123456.khma.data.download.Downloads
+import io.github.meko123456.khma.data.download.OrphanDownloads
 import io.github.meko123456.khma.data.rss.FeedFailure
 import io.github.meko123456.khma.domain.FeedAddress
 import kotlinx.coroutines.Dispatchers
@@ -35,6 +36,14 @@ class LibraryViewModel(app: Application) : AndroidViewModel(app) {
     var status by mutableStateOf<String?>(null); private set
     var busy by mutableStateOf(false); private set
     var refreshing by mutableStateOf(false); private set
+
+    init {
+        // Audio that unsubscribes left behind before they deleted it themselves (d56c3d2).
+        viewModelScope.launch(Dispatchers.IO) {
+            val referenced = db.episodeDao().downloadPaths().map { it.substringAfterLast('/') }.toSet()
+            OrphanDownloads.sweep(Downloads.dir(app), referenced, System.currentTimeMillis())
+        }
+    }
 
     fun podcast(feedUrl: String): Flow<PodcastEntity?> = repo.podcast(feedUrl)
     fun episodes(feedUrl: String): Flow<List<EpisodeEntity>> = repo.episodes(feedUrl)

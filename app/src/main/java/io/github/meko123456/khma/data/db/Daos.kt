@@ -33,6 +33,9 @@ interface EpisodeDao {
     @Query("SELECT guid FROM episodes WHERE feedUrl = :feedUrl")
     suspend fun guidsFor(feedUrl: String): List<String>
 
+    @Query("SELECT downloadPath FROM episodes WHERE downloadPath IS NOT NULL")
+    suspend fun downloadPaths(): List<String>
+
     /** Adds new episodes without touching existing rows — preserves playback/download state on refresh. */
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertNew(episodes: List<EpisodeEntity>)

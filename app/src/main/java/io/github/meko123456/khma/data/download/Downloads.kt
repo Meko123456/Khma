@@ -17,9 +17,11 @@ object Downloads {
     fun uniqueName(feedUrl: String, guid: String): String = "dl:$feedUrl|$guid"
 
     fun file(context: Context, feedUrl: String, guid: String): File {
-        val dir = File(context.filesDir, "downloads").apply { mkdirs() }
+        val dir = dir(context).apply { mkdirs() }
         return File(dir, "${feedUrl.hashCode()}_${guid.hashCode()}.audio")
     }
+
+    fun dir(context: Context): File = File(context.filesDir, "downloads")
 
     /** Enqueues a download; KEEP means tapping again while one is running is a no-op. */
     fun enqueue(context: Context, e: EpisodeEntity) {
