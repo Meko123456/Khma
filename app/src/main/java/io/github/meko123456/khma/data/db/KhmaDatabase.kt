@@ -5,7 +5,7 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 
-@Database(entities = [PodcastEntity::class, EpisodeEntity::class], version = 1, exportSchema = false)
+@Database(entities = [PodcastEntity::class, EpisodeEntity::class], version = 1, exportSchema = true)
 abstract class KhmaDatabase : RoomDatabase() {
 
     abstract fun podcastDao(): PodcastDao
