@@ -115,8 +115,8 @@ class LibraryViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     /**
-     * Emits download progress percent (0..100) while running, [DOWNLOAD_FAILED] once the worker has
-     * given up on it, or -1 when idle/finished.
+     * Emits download progress percent (0..100) while running, [DOWNLOAD_WAITING] while it is queued
+     * but not running, [DOWNLOAD_FAILED] once the worker has given up on it, or -1 when idle/finished.
      */
     fun downloadProgress(feedUrl: String, guid: String): Flow<Int> =
         WorkManager.getInstance(getApplication())
@@ -124,6 +124,7 @@ class LibraryViewModel(app: Application) : AndroidViewModel(app) {
             .map { infos ->
                 val active = infos.firstOrNull { !it.state.isFinished }
                 when {
+                    active != null && active.state != WorkInfo.State.RUNNING -> DOWNLOAD_WAITING
                     active != null -> active.progress.getInt(DownloadWorker.KEY_PROGRESS, 0)
                     infos.any { it.state == WorkInfo.State.FAILED } -> DOWNLOAD_FAILED
                     else -> -1
@@ -133,6 +134,9 @@ class LibraryViewModel(app: Application) : AndroidViewModel(app) {
     companion object {
         /** A download the worker gave up on after its retries: a 404, or a link the host let expire. */
         const val DOWNLOAD_FAILED = -2
+
+        /** Queued and not running: no connection yet, or the pause before another try. */
+        const val DOWNLOAD_WAITING = -3
     }
 
     fun clearStatus() { status = null }

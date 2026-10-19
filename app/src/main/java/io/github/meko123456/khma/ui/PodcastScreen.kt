@@ -42,6 +42,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -185,6 +186,20 @@ private fun DownloadControl(e: EpisodeEntity, vm: LibraryViewModel) {
                         Icons.Default.Refresh,
                         contentDescription = "Download failed. Try again",
                         tint = MaterialTheme.colorScheme.error,
+                    )
+                }
+            } else if (progress == LibraryViewModel.DOWNLOAD_WAITING) {
+                // Queued behind its network constraint or a retry's pause. It showed as an empty
+                // progress ring, which reads as a download that has started and stalled.
+                Box(
+                    Modifier.size(48.dp).semantics { contentDescription = "Download waiting for a connection" },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        "Waiting",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
                     )
                 }
             } else if (progress >= 0) {
