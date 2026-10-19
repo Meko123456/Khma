@@ -16,6 +16,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.LinearProgressIndicator
@@ -176,7 +177,17 @@ private fun DownloadControl(e: EpisodeEntity, vm: LibraryViewModel) {
         }
         else -> {
             val progress by vm.downloadProgress(e.feedUrl, e.guid).collectAsState(initial = -1)
-            if (progress >= 0) {
+            if (progress == LibraryViewModel.DOWNLOAD_FAILED) {
+                // The worker gave up after its retries, and the row used to go back to plain ⬇ as
+                // if nothing had been tried. Say so, and let the same tap try again.
+                IconButton(onClick = { vm.download(e) }) {
+                    Icon(
+                        Icons.Default.Refresh,
+                        contentDescription = "Download failed. Try again",
+                        tint = MaterialTheme.colorScheme.error,
+                    )
+                }
+            } else if (progress >= 0) {
                 Box(Modifier.size(48.dp), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator(
                         progress = { progress / 100f },

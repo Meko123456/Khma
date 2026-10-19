@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import io.github.meko123456.khma.data.PodcastRepository
 import io.github.meko123456.khma.data.db.EpisodeEntity
@@ -113,14 +114,26 @@ class LibraryViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    /** Emits download progress percent (0..100) while running, or -1 when idle/finished. */
+    /**
+     * Emits download progress percent (0..100) while running, [DOWNLOAD_FAILED] once the worker has
+     * given up on it, or -1 when idle/finished.
+     */
     fun downloadProgress(feedUrl: String, guid: String): Flow<Int> =
         WorkManager.getInstance(getApplication())
             .getWorkInfosForUniqueWorkFlow(Downloads.uniqueName(feedUrl, guid))
             .map { infos ->
                 val active = infos.firstOrNull { !it.state.isFinished }
-                active?.progress?.getInt(DownloadWorker.KEY_PROGRESS, 0) ?: -1
+                when {
+                    active != null -> active.progress.getInt(DownloadWorker.KEY_PROGRESS, 0)
+                    infos.any { it.state == WorkInfo.State.FAILED } -> DOWNLOAD_FAILED
+                    else -> -1
+                }
             }
+
+    companion object {
+        /** A download the worker gave up on after its retries: a 404, or a link the host let expire. */
+        const val DOWNLOAD_FAILED = -2
+    }
 
     fun clearStatus() { status = null }
 }
