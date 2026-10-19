@@ -13,6 +13,7 @@ import io.github.meko123456.khma.data.db.KhmaDatabase
 import io.github.meko123456.khma.data.db.PodcastEntity
 import io.github.meko123456.khma.data.download.DownloadWorker
 import io.github.meko123456.khma.data.download.Downloads
+import io.github.meko123456.khma.data.download.MissingDownloads
 import io.github.meko123456.khma.data.download.OrphanDownloads
 import io.github.meko123456.khma.data.rss.FeedFailure
 import io.github.meko123456.khma.domain.FeedAddress
@@ -38,9 +39,13 @@ class LibraryViewModel(app: Application) : AndroidViewModel(app) {
     var refreshing by mutableStateOf(false); private set
 
     init {
-        // Audio that unsubscribes left behind before they deleted it themselves (d56c3d2).
         viewModelScope.launch(Dispatchers.IO) {
-            val referenced = db.episodeDao().downloadPaths().map { it.substringAfterLast('/') }.toSet()
+            val episodes = db.episodeDao()
+            // Downloads a restore didn't bring back, since backup leaves the audio out: those
+            // episodes stream instead of failing to play a file that isn't there.
+            MissingDownloads.find(episodes.downloadPaths()).forEach { episodes.forgetDownload(it) }
+            // Audio that unsubscribes left behind before they deleted it themselves (d56c3d2).
+            val referenced = episodes.downloadPaths().map { it.substringAfterLast('/') }.toSet()
             OrphanDownloads.sweep(Downloads.dir(app), referenced, System.currentTimeMillis())
         }
     }

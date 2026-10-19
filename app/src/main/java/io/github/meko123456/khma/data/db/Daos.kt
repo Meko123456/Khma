@@ -45,4 +45,7 @@ interface EpisodeDao {
 
     @Query("UPDATE episodes SET downloadPath = :path WHERE feedUrl = :feedUrl AND guid = :guid")
     suspend fun setDownloadPath(feedUrl: String, guid: String, path: String?)
+
+    @Query("UPDATE episodes SET downloadPath = NULL WHERE downloadPath = :path")
+    suspend fun forgetDownload(path: String)
 }

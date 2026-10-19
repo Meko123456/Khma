@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Android 12 and later. Everything is backed up and transferred except downloaded audio
+  (files/downloads). An episode or two is past the 25 MB a cloud backup may hold, and a backup over
+  it fails whole, so the subscriptions and listening positions went with it. The audio can be
+  downloaded again: LibraryViewModel forgets a download whose file didn't come back, and the
+  episode streams.
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="file" path="downloads" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="file" path="downloads" />
+    </device-transfer>
+</data-extraction-rules>
