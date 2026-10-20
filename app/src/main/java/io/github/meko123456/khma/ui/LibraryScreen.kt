@@ -41,6 +41,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -76,7 +79,18 @@ fun LibraryScreen(
     }
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text("Khma 🎧") }) },
+        topBar = {
+            TopAppBar(
+                title = {
+                    // Read as the app's name and as the screen's heading. TalkBack read the emoji
+                    // too: "Khma, headphone".
+                    Text(
+                        "Khma 🎧",
+                        modifier = Modifier.clearAndSetSemantics { contentDescription = "Khma"; heading() },
+                    )
+                },
+            )
+        },
         floatingActionButton = {
             FloatingActionButton(onClick = { adding = ""; openings++ }) {
                 Icon(Icons.Default.Add, contentDescription = "Add a podcast")
