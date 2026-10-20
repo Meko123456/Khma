@@ -16,9 +16,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -57,7 +60,7 @@ import java.util.Date
 fun PodcastScreen(feedUrl: String, onBack: () -> Unit, onPlay: (EpisodeEntity) -> Unit, vm: LibraryViewModel = viewModel()) {
     val podcast by vm.podcast(feedUrl).collectAsState(initial = null)
     val episodes by vm.episodes(feedUrl).collectAsState(initial = emptyList())
-    // One tap on the bin used to unsubscribe outright, and with it every episode's position and
+    // One tap used to unsubscribe outright, and with it every episode's position and
     // every download, none of which a resubscribe brings back.
     var confirmUnsubscribe by rememberSaveable { mutableStateOf(false) }
 
@@ -71,8 +74,22 @@ fun PodcastScreen(feedUrl: String, onBack: () -> Unit, onPlay: (EpisodeEntity) -
                     }
                 },
                 actions = {
-                    IconButton(onClick = { confirmUnsubscribe = true }) {
-                        Icon(Icons.Default.Delete, contentDescription = "Unsubscribe")
+                    // Named, in a menu: as a bin it looked like the Delete download bins in the list
+                    // below, as if it deleted this podcast's downloads rather than the podcast.
+                    var menu by remember { mutableStateOf(false) }
+                    Box {
+                        IconButton(onClick = { menu = true }) {
+                            Icon(Icons.Default.MoreVert, contentDescription = "More options")
+                        }
+                        DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                            DropdownMenuItem(
+                                text = { Text("Unsubscribe") },
+                                onClick = {
+                                    menu = false
+                                    confirmUnsubscribe = true
+                                },
+                            )
+                        }
                     }
                 },
             )
