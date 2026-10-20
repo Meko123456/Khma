@@ -14,6 +14,23 @@ class FeedFetcher(
         .callTimeout(30, TimeUnit.SECONDS)
         .build(),
 ) {
+    /**
+     * The feed an address stands for: an Apple Podcasts show link is looked up for its RSS feed, and
+     * anything else is taken as the feed itself.
+     */
+    suspend fun resolve(address: String): Result<String> = withContext(Dispatchers.IO) {
+        val showId = ApplePodcasts.showId(address) ?: return@withContext Result.success(address)
+        runCatching {
+            val request = Request.Builder().url(ApplePodcasts.lookupUrl(showId)).header("User-Agent", "Khma/0.1").build()
+            client.newCall(request).execute().use { response ->
+                if (!response.isSuccessful) throw HttpStatusException(response.code)
+                val reply = response.body?.string().orEmpty()
+                ApplePodcasts.feedUrl(reply)
+                    ?: throw if (ApplePodcasts.foundShow(reply)) NoPublicFeedException() else NoSuchShowException()
+            }
+        }
+    }
+
     /** Downloads and parses [feedUrl]; failure (network or malformed feed) is returned, not thrown. */
     suspend fun fetch(feedUrl: String): Result<Podcast> = withContext(Dispatchers.IO) {
         runCatching {

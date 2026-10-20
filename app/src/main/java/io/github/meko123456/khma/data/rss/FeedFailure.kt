@@ -19,6 +19,10 @@ object FeedFailure {
         }
         is NotAFeedException ->
             "That address isn't a podcast feed. Look for an RSS link on the podcast's website."
+        is NoPublicFeedException ->
+            "Apple Podcasts has no public feed for that show, so only Apple's app can play it."
+        is NoSuchShowException ->
+            "Apple Podcasts has no show at that link. Check the whole link was copied."
         // OkHttp's verdict on an address it can't parse at all.
         is IllegalArgumentException -> "That isn't a web address."
         else -> "Couldn't add that feed."

@@ -26,10 +26,12 @@ class PodcastRepository(
     fun episodes(feedUrl: String): Flow<List<EpisodeEntity>> = episodeDao.observeForPodcast(feedUrl)
 
     /** Subscribes to (or refreshes) a feed: fetch, upsert the podcast, add new episodes. */
-    suspend fun subscribe(feedUrl: String): Result<Unit> = fetcher.fetch(feedUrl).mapCatching { podcast ->
-        podcastDao.upsert(podcast.toEntity())
-        episodeDao.insertNew(podcast.episodes.map { it.toEntity(podcast.feedUrl) })
-    }
+    suspend fun subscribe(address: String): Result<Unit> = fetcher.resolve(address)
+        .mapCatching { feedUrl -> fetcher.fetch(feedUrl).getOrThrow() }
+        .mapCatching { podcast ->
+            podcastDao.upsert(podcast.toEntity())
+            episodeDao.insertNew(podcast.episodes.map { it.toEntity(podcast.feedUrl) })
+        }
 
     /** Removes the podcast; its episodes go with it through the foreign key. */
     suspend fun unsubscribe(feedUrl: String) = podcastDao.delete(feedUrl)
