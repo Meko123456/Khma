@@ -29,8 +29,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -47,16 +50,35 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import io.github.meko123456.khma.data.db.PodcastEntity
 
+/** A link shared to Khma, numbered so the same link shared twice still opens the dialog twice. */
+data class SharedAddress(val address: String, val number: Int)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LibraryScreen(onOpenPodcast: (String) -> Unit, vm: LibraryViewModel = viewModel()) {
+fun LibraryScreen(
+    onOpenPodcast: (String) -> Unit,
+    shared: SharedAddress? = null,
+    onSharedOpened: () -> Unit = {},
+    vm: LibraryViewModel = viewModel(),
+) {
     val podcasts by vm.podcasts.collectAsState()
-    var adding by rememberSaveable { mutableStateOf(false) }
+    // What the add dialog opened with: null while it is closed, "" from the + button, or a shared link.
+    var adding by rememberSaveable { mutableStateOf<String?>(null) }
+    // Counts the openings, so a link shared while the dialog is open replaces what was typed in it.
+    var openings by rememberSaveable { mutableIntStateOf(0) }
+
+    LaunchedEffect(shared) {
+        if (shared != null) {
+            adding = shared.address
+            openings++
+            onSharedOpened()
+        }
+    }
 
     Scaffold(
         topBar = { TopAppBar(title = { Text("Khma 🎧") }) },
         floatingActionButton = {
-            FloatingActionButton(onClick = { adding = true }) {
+            FloatingActionButton(onClick = { adding = ""; openings++ }) {
                 Icon(Icons.Default.Add, contentDescription = "Add a podcast")
             }
         },
@@ -99,12 +121,15 @@ fun LibraryScreen(onOpenPodcast: (String) -> Unit, vm: LibraryViewModel = viewMo
         }
     }
 
-    if (adding) {
-        AddFeedDialog(
-            busy = vm.busy,
-            onAdd = { vm.subscribe(it); adding = false },
-            onDismiss = { adding = false },
-        )
+    adding?.let { initial ->
+        key(openings) {
+            AddFeedDialog(
+                initial = initial,
+                busy = vm.busy,
+                onAdd = { vm.subscribe(it); adding = null },
+                onDismiss = { adding = null },
+            )
+        }
     }
 }
 
@@ -144,8 +169,8 @@ fun Artwork(url: String?, size: androidx.compose.ui.unit.Dp) {
 }
 
 @Composable
-private fun AddFeedDialog(busy: Boolean, onAdd: (String) -> Unit, onDismiss: () -> Unit) {
-    var url by rememberSaveable { mutableStateOf("") }
+private fun AddFeedDialog(initial: String, busy: Boolean, onAdd: (String) -> Unit, onDismiss: () -> Unit) {
+    var url by rememberSaveable { mutableStateOf(initial) }
     val canAdd = url.isNotBlank() && !busy
     AlertDialog(
         onDismissRequest = onDismiss,

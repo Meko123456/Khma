@@ -20,4 +20,23 @@ object FeedAddress {
             else -> "https://$trimmed"
         }
     }
+
+    /**
+     * The address in text another app shared: its first link, without the full stop or bracket a
+     * sentence put after it, or else the text's first line, for the add dialog to show as it came.
+     */
+    fun fromShared(text: String): String {
+        val found = sharedLink.find(text)?.value
+            ?: return text.lineSequence().map { it.trim() }.firstOrNull { it.isNotEmpty() }.orEmpty()
+        var end = found.length
+        while (end > 0) {
+            val last = found[end - 1]
+            val unopened = last == ')' && found.take(end).count { it == ')' } > found.take(end).count { it == '(' }
+            if (last in ".,;:!?" || unopened) end-- else break
+        }
+        return found.take(end)
+    }
+
+    private val sharedLink =
+        Regex("""(?:(?:https?|feed|itpc|pcast|podcast)://|www\.)[^\s<>"'“”‘’«»]+""", RegexOption.IGNORE_CASE)
 }
