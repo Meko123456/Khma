@@ -102,7 +102,7 @@ fun LibraryScreen(
                 ) {
                     Text("No podcasts yet", style = MaterialTheme.typography.titleMedium)
                     Text(
-                        "Tap + and paste a podcast's RSS feed URL to subscribe.",
+                        "Tap + and paste a podcast's RSS feed or Apple Podcasts link, or share the link to Khma.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center,
@@ -179,7 +179,10 @@ private fun AddFeedDialog(initial: String, busy: Boolean, onAdd: (String) -> Uni
             OutlinedTextField(
                 value = url,
                 onValueChange = { url = it },
-                label = { Text("RSS feed URL") },
+                // It takes more than feeds now (4590793), and a longer label would be cut off at the
+                // larger text sizes, so the field says what it takes underneath.
+                label = { Text("Podcast link") },
+                supportingText = { Text("An RSS feed or an Apple Podcasts link") },
                 singleLine = true,
                 // A link keyboard with nothing to autocorrect, and Go adds the feed as Add does.
                 keyboardOptions = KeyboardOptions(

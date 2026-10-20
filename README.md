@@ -15,8 +15,9 @@ built on **Media3 / ExoPlayer**.
 
 ## Features
 
-- 📡 **Subscribe by RSS** — paste any podcast feed URL; the channel and its
-  episodes are parsed and stored locally.
+- 📡 **Subscribe by RSS** — paste any podcast feed URL, or a show's Apple Podcasts
+  link (Apple's lookup gives its feed), or share the link to Khma from a browser or
+  chat; the channel and its episodes are parsed and stored locally.
 - ▶️ **Background playback** — Media3 `ExoPlayer` in a `MediaSessionService`, with
   notification / lock-screen controls, audio focus, and headset-button handling.
 - ⏱️ **Resume where you left off** — per-episode position is persisted and restored.
