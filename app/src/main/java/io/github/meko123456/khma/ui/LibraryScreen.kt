@@ -35,11 +35,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
@@ -186,6 +189,7 @@ fun Artwork(url: String?, size: androidx.compose.ui.unit.Dp) {
 private fun AddFeedDialog(initial: String, busy: Boolean, onAdd: (String) -> Unit, onDismiss: () -> Unit) {
     var url by rememberSaveable { mutableStateOf(initial) }
     val canAdd = url.isNotBlank() && !busy
+    val field = remember { FocusRequester() }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Add a podcast") },
@@ -205,8 +209,11 @@ private fun AddFeedDialog(initial: String, busy: Boolean, onAdd: (String) -> Uni
                     imeAction = ImeAction.Go,
                 ),
                 keyboardActions = KeyboardActions(onGo = { if (canAdd) onAdd(url) }),
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().focusRequester(field),
             )
+            // Opened empty, from + or the launcher shortcut, the next thing is pasting a link, so the
+            // field has the keyboard; a shared link is already in it and needs only Add.
+            LaunchedEffect(Unit) { if (initial.isEmpty()) field.requestFocus() }
         },
         confirmButton = { TextButton(enabled = canAdd, onClick = { onAdd(url) }) { Text("Add") } },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
