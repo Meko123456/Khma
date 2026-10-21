@@ -30,6 +30,9 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
             <!-- A podcast's link shared from a browser or a chat opens the add dialog with it. -->
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />

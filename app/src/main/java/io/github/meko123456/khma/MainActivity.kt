@@ -105,8 +105,17 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun take(intent: Intent?) {
+        // The launcher's Add a podcast shortcut (res/xml/shortcuts.xml): the add dialog, empty.
+        if (intent?.action == ACTION_ADD_PODCAST) {
+            shared = SharedAddress("", (shared?.number ?: 0) + 1)
+            return
+        }
         if (intent?.action != Intent.ACTION_SEND) return
         val text = intent.getCharSequenceExtra(Intent.EXTRA_TEXT)?.toString()?.takeIf { it.isNotBlank() } ?: return
         shared = SharedAddress(FeedAddress.fromShared(text), (shared?.number ?: 0) + 1)
+    }
+
+    companion object {
+        const val ACTION_ADD_PODCAST = "io.github.meko123456.khma.action.ADD_PODCAST"
     }
 }

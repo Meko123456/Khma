@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Long-press Khma's icon: add a podcast without opening the library first. -->
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="add_podcast"
+        android:icon="@drawable/ic_shortcut_add"
+        android:shortcutShortLabel="@string/shortcut_add_podcast_short"
+        android:shortcutLongLabel="@string/shortcut_add_podcast_long">
+        <intent
+            android:action="io.github.meko123456.khma.action.ADD_PODCAST"
+            android:targetClass="io.github.meko123456.khma.MainActivity"
+            android:targetPackage="io.github.meko123456.khma" />
+    </shortcut>
+</shortcuts>
