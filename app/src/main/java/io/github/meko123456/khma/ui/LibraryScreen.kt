@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -44,9 +45,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -102,14 +107,7 @@ fun LibraryScreen(
     ) { padding ->
         Column(Modifier.fillMaxSize().padding(padding)) {
             if (vm.busy) LinearProgressIndicator(Modifier.fillMaxWidth())
-            vm.status?.let {
-                Text(
-                    it,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.fillMaxWidth().clickable { vm.clearStatus() }.padding(horizontal = 16.dp, vertical = 6.dp),
-                )
-            }
+            AddStatus(vm.status, onClear = vm::clearStatus)
 
             if (podcasts.isEmpty()) {
                 Column(
@@ -148,6 +146,37 @@ fun LibraryScreen(
             )
         }
     }
+}
+
+/** The add status line, for tests. */
+internal const val ADD_STATUS_TAG = "add-status"
+
+/**
+ * What adding a podcast is doing: "Adding…", then "Added" or why it failed. Tapping it clears it.
+ *
+ * A polite live region, so TalkBack reads each step where the user is: the add dialog has closed
+ * and nothing else says how it went. It is always composed, empty and with no height while there's
+ * nothing to say, so every change is a change of this one node's words; a node that newly appears
+ * isn't announced.
+ */
+@Composable
+internal fun AddStatus(status: String?, onClear: () -> Unit) {
+    Text(
+        status.orEmpty(),
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier
+            .fillMaxWidth()
+            .testTag(ADD_STATUS_TAG)
+            .semantics { liveRegion = LiveRegionMode.Polite }
+            .then(
+                if (status == null) {
+                    Modifier.height(0.dp)
+                } else {
+                    Modifier.clickable(onClickLabel = "Dismiss", onClick = onClear).padding(horizontal = 16.dp, vertical = 6.dp)
+                },
+            ),
+    )
 }
 
 @Composable
